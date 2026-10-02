@@ -1,5 +1,4 @@
-# AgentFlow AI — Developer 1 Platform
-
+# AgentFlow AI
 **From Intent to Action. Fully Autonomous.**
 
 This repository completes the platform/orchestration side of AgentFlow AI around the supplied Developer 2 FastAPI agent service.
@@ -132,8 +131,6 @@ Open `http://localhost`.
 
 For production, use MongoDB Atlas rather than the local `mongo` service and provide strong random JWT secrets.
 
-## Developer 2 contract
-
 The supplied AI service exposes:
 
 - `POST /agent/plan`
@@ -210,5 +207,3 @@ With the supplied Developer 2 demo mode:
 5. Approval Center resumes execution.
 6. Validator reports confidence.
 7. Workflow, logs, risks and analytics are persisted.
-
-The supplied Developer 2 tools are mock integrations until real MCP/Airtable/Gmail credentials and tool implementations are configured.
