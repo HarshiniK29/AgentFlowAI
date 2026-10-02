@@ -1,0 +1,28 @@
+sequenceDiagram
+ participant U as User
+ participant FE as React
+ participant API as Express
+ participant DB as MongoDB
+ participant AI as FastAPI
+ participant S as Socket.IO
+ U->>FE: Enter natural language goal
+ FE->>API: POST /workflow/create
+ API->>DB: Create workflow
+ API->>AI: POST /agent/plan
+ AI-->>API: Plan + tasks
+ API->>DB: Save tasks
+ API-->>FE: Workflow
+ U->>FE: Execute
+ FE->>API: POST /workflow/execute
+ API->>AI: POST /agent/run
+ AI-->>API: running / awaiting_approval / completed
+ API->>DB: Persist state + logs
+ API->>S: Emit realtime event
+ S-->>FE: workflow-running / approval-created / completed
+ U->>FE: Approve risky action
+ FE->>API: POST /approval/approve
+ API->>AI: POST /agent/run with approved task
+ AI-->>API: Completed
+ API->>DB: Persist final state
+ API->>S: workflow-completed
+ S-->>FE: Completion event

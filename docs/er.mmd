@@ -1,0 +1,54 @@
+erDiagram
+ USER ||--o{ WORKFLOW : creates
+ USER ||--o{ APPROVAL : requests
+ USER ||--o{ REFRESH_SESSION : owns
+ USER ||--o| ANALYTICS : has
+ WORKFLOW ||--o{ TASK : contains
+ WORKFLOW ||--o{ EXECUTION_LOG : produces
+ WORKFLOW ||--o{ APPROVAL : pauses
+ USER {
+   ObjectId _id PK
+   string name
+   string email UK
+   string passwordHash
+   string role
+ }
+ WORKFLOW {
+   ObjectId _id PK
+   ObjectId createdBy FK
+   string goal
+   string status
+   mixed tasks
+   mixed results
+   mixed risks
+   number confidence
+ }
+ TASK {
+   ObjectId _id PK
+   ObjectId workflowId FK
+   string taskId
+   string status
+   string tool
+ }
+ APPROVAL {
+   ObjectId _id PK
+   ObjectId workflowId FK
+   string taskId
+   string riskLevel
+   string status
+ }
+ EXECUTION_LOG {
+   ObjectId _id PK
+   ObjectId workflowId FK
+   string agent
+   string type
+   string message
+   date at
+ }
+ ANALYTICS {
+   ObjectId _id PK
+   ObjectId userId FK
+   number totalWorkflows
+   number completed
+   number timeSavedMinutes
+ }

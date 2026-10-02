@@ -1,0 +1,16 @@
+import {Router} from "express";
+import {requireAuth} from "../middleware/auth.js";
+import {planAgent,runAgent,riskAnalyze,memorySearch,memoryStore} from "../services/ai.js";
+import axios from "axios";
+import {config} from "../config.js";
+import {asyncHandler} from "../utils.js";
+const router=Router();router.use(requireAuth);
+const ai=axios.create({baseURL:config.aiBaseUrl,timeout:120000,headers:{"x-api-key":config.aiApiKey,"Content-Type":"application/json"}});
+router.post("/plan",asyncHandler(async(req,res)=>res.json(await planAgent({...req.body,user_id:req.user._id.toString()}))));
+router.post("/execute",asyncHandler(async(req,res)=>res.json((await ai.post("/agent/execute",req.body)).data)));
+router.post("/validate",asyncHandler(async(req,res)=>res.json((await ai.post("/agent/validate",req.body)).data)));
+router.post("/recover",asyncHandler(async(req,res)=>res.json((await ai.post("/agent/recover",req.body)).data)));
+router.post("/risk/analyze",asyncHandler(async(req,res)=>res.json(await riskAnalyze(req.body))));
+router.post("/memory/search",asyncHandler(async(req,res)=>res.json(await memorySearch({...req.body,user_id:req.user._id.toString()}))));
+router.post("/memory/store",asyncHandler(async(req,res)=>res.json(await memoryStore({...req.body,user_id:req.user._id.toString()}))));
+export default router;

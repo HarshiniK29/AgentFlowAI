@@ -1,0 +1,72 @@
+services:
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    volumes: [mongo_data:/data/db]
+    healthcheck:
+      test: ["CMD","mongosh","--eval","db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ai-service:
+    build: ./python-ai
+    restart: unless-stopped
+    environment:
+      SERVICE_API_KEY: ${AI_API_KEY:-agentflow-dev-key-123}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      BROWSER_HEADLESS: "true"
+      MOCK_TOOLS: ${MOCK_TOOLS:-true}
+      LLM_API_KEY: ${LLM_API_KEY:-${OPENAI_API_KEY:-}}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai/}
+      LLM_MODEL: ${LLM_MODEL:-gemini-3.1-flash-lite}
+      AIRTABLE_TOKEN: ${AIRTABLE_TOKEN:-}
+      AIRTABLE_BASE_ID: ${AIRTABLE_BASE_ID:-}
+      AIRTABLE_TABLE_NAME: ${AIRTABLE_TABLE_NAME:-AgentFlow Leads}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-AgentFlow AI <no-reply@example.com>}
+    ports: ["8000:8000"]
+    volumes: ["ai_data:/app/data"]
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/agentflow}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-access}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh}
+      JWT_ACCESS_EXPIRES: 15m
+      JWT_REFRESH_EXPIRES_DAYS: 30
+      CLIENT_URL: ${CLIENT_URL:-http://localhost}
+      AI_BASE_URL: http://ai-service:8000
+      AI_API_KEY: ${AI_API_KEY:-agentflow-dev-key-123}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-AgentFlow AI <no-reply@example.com>}
+      DEMO_MODE: ${DEMO_MODE:-true}
+    depends_on:
+      mongo: {condition: service_healthy}
+      ai-service: {condition: service_started}
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+        VITE_SOCKET_URL: ""
+        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    restart: unless-stopped
+    ports: ["80:80"]
+    depends_on: [backend]
+
+volumes:
+  mongo_data:
+  ai_data:
