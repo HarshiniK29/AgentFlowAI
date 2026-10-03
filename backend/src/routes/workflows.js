@@ -86,12 +86,32 @@ router.post("/execute", asyncHandler(async(req,res)=>{
     } else if(run.status==="completed") emitWorkflow(wf.id,"workflow-completed",{confidence:run.confidence});
     else if(["failed","escalated"].includes(run.status)) emitWorkflow(wf.id,"workflow-failed",{status:run.status});
     res.json({workflow:wf,run});
-  } catch(e) {
-    wf.status="failed"; wf.error=e.response?.data?.detail||e.message; await wf.save();
-    await ExecutionLog.create({workflowId:wf._id,type:"error",agent:"Gateway",message:wf.error});
-    emitWorkflow(wf.id,"workflow-failed",{error:wf.error});
-    res.status(502).json({message:"AI execution service unavailable",detail:wf.error});
-  }
+} catch (e) {
+  console.error("PLAN AGENT ERROR");
+  console.error("Message:", e.message);
+  console.error("Response:", e.response?.data);
+  console.error("Status:", e.response?.status);
+
+  wf.status = "failed";
+  wf.error =
+    e.response?.data?.detail ||
+    JSON.stringify(e.response?.data) ||
+    e.message;
+
+  await wf.save();
+
+  emitWorkflow(
+    wf._id.toString(),
+    "workflow-failed",
+    { error: wf.error }
+  );
+
+  res.status(502).json({
+    message: "AI planning service unavailable",
+    detail: wf.error,
+    workflow: wf,
+  });
+}
 }));
 
 router.get("/history", asyncHandler(async(req,res)=>{
