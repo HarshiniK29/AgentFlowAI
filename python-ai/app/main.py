@@ -7,7 +7,22 @@ from app.security import verify_api_key
 
 logging.basicConfig(level=logging.INFO)
 
-app = FastAPI(title="AgentFlow AI - Agent Service", version="0.1.0")
+app = FastAPI(
+    title="AgentFlow AI - Agent Service",
+    version="0.1.0"
+)
+
+
+@app.get("/")
+async def root():
+    return {
+        "status": "ok",
+        "message": "AgentFlow AI Backend Running 🚀",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
+
 app.include_router(router)
 
 
